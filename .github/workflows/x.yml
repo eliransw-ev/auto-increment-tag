@@ -23,7 +23,7 @@ jobs:
           echo "Current tag is ${current_tag}"
           new_tag=`echo ${current_tag} | awk -F. '{print $1 "." $2 "." $3+1}'`
           echo "new tag is ${new_tag}"
-          echo "${new_tag}" >> "$GITHUB_OUTPUT"
+          echo "new=${new_tag}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
         uses: actions/github-script@v5
@@ -32,6 +32,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.platform_tag.outputs.new_tag}}',
+              ref: 'refs/tags/${{ steps.platform_tag.outputs.new}}',
               sha: context.sha
             })
