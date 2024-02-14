@@ -16,15 +16,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Increment tag (patch)
-        id: platform_tag
+      - name: fetch all tags
+        run: git fetch --tags origin
+
+      - name: Calculate next version
+        id: semver
         run: |
-          git fetch --tags origin
-          current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
-          echo "Current tag is ${current_tag}"
-          new_tag=`echo ${current_tag} | awk -F. '{print $1 "." $2 "." $3+1}'`
-          echo "new tag is ${new_tag}"
-          echo "new=${new_tag}" >> "$GITHUB_OUTPUT"
+          version_prefix="platform/infra"
+          
+          latest_version=`git tag --sort=committerdate -l | grep ^$tag_prefix | tail -1`
+          echo "Latest version is ${latest_version}"
+          
+          new_version=`echo ${latest_version} | awk -F. '{print $1 "." $2 "." $3+1}'`
+          echo "New version is ${new_version}"
+          
+          # Pass version to next step
+          echo "new_version=${new_version}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
         uses: actions/github-script@v5
@@ -33,6 +40,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.platform_tag.outputs.new}}',
+              ref: 'refs/tags/${{ steps.semver.outputs.new_version}}',
               sha: context.sha
             })
