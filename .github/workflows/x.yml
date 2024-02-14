@@ -3,9 +3,7 @@ name: Create Platform Infra tag
 on:
   push:
     branches: 
-      - "master" 
-    paths: 
-      - "platform/**"
+      - "main" 
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -17,14 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Update tag
-        id: calculate-tag
-        run: |
-          echo `git tag --sort=committerdate -l`
-          current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
-          echo "Current tag is ${current_tag}"
-          NEW_TAG=`echo $current_tag | awk -F. '{print $1 "." $2 "." $3+1}'`
-          echo $NEW_TAG >> "$GITHUB_OUTPUT"
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          prefix: platform/infra
+      
+      - name: 'Get next minor version'
+        id: semvers
+        uses: "WyriHaximus/github-action-next-semvers@v1"
+        with:
+          version: ${{ steps.previoustag.outputs.tag }}
 
       - name: Create tag
         uses: actions/github-script@v5
@@ -33,6 +34,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.calculate-tag.outputs.NEW_TAG }}',
+              ref: 'refs/tags/${{ steps.semvers.outputs.v_patch}}',
               sha: context.sha
             })
