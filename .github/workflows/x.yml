@@ -1,0 +1,37 @@
+name: Create Platform Infra tag
+
+on:
+  push:
+    branches: 
+      - "master" 
+    paths: 
+      - "platform/**"
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update tag
+        id: calculate-tag
+        run: |
+          current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
+          echo "Current tag is ${current_tag}"
+          new_tag=`echo $current_tag | awk -F. '{print $1 "." $2 "." $3+1}'`
+          echo $NEW_TAG >> "$GITHUB_OUTPUT"
+
+      - name: Create tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.calculate-tag.outputs.NEW_TAG }}',
+              sha: context.sha
+            })
