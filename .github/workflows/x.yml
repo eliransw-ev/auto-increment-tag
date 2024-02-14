@@ -15,12 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: |
+      - name: Increment tag (patch)
+        id: platform_tag
+        run: |
           git fetch --tags origin
           current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
           echo "Current tag is ${current_tag}"
-          NEW_TAG=`echo ${current_tag} | awk -F. '{print $1 "." $2 "." $3+1}'`
-          echo "${NEW_TAG}" >> "$GITHUB_OUTPUT"
+          new_tag=`echo ${current_tag} | awk -F. '{print $1 "." $2 "." $3+1}'`
+          echo "${new_tag}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
         uses: actions/github-script@v5
@@ -29,6 +31,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.semvers.outputs.v_patch}}',
+              ref: 'refs/tags/${{ steps.platform_tag.outputs.new_tag}}',
               sha: context.sha
             })
