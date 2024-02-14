@@ -15,20 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: git fetch --tags origin
-
-      - name: 'Get Previous tag'
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        with:
-          prefix: platform/infra/
-      
-      - name: 'Get next minor version'
-        id: semvers
-        uses: "WyriHaximus/github-action-next-semvers@v1"
-        with:
-          version: ${{ steps.previoustag.outputs.tag }}
-          strict: false
+      - run: |
+          git fetch --tags origin
+          current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
+          echo "Current tag is ${current_tag}"
+          NEW_TAG=`echo $current_tag | awk -F. '{print $1 "." $2 "." $3+1}'`
+          echo $NEW_TAG >> "$GITHUB_OUTPUT"
 
       - name: Create tag
         uses: actions/github-script@v5
