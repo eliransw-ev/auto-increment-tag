@@ -22,6 +22,7 @@ jobs:
           current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
           echo "Current tag is ${current_tag}"
           new_tag=`echo ${current_tag} | awk -F. '{print $1 "." $2 "." $3+1}'`
+          echo "new tag is ${new_tag}"
           echo "${new_tag}" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
