@@ -20,6 +20,7 @@ jobs:
       - name: Update tag
         id: calculate-tag
         run: |
+          git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1
           current_tag=`git tag --sort=committerdate -l | grep platform/infra/v1 | tail -1`
           echo "Current tag is ${current_tag}"
           NEW_TAG=`echo $current_tag | awk -F. '{print $1 "." $2 "." $3+1}'`
